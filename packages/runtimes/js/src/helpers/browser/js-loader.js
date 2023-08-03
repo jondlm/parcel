@@ -20,7 +20,7 @@ module.exports = cacheLoader(function loadJSBundle(bundle) {
     document.head.appendChild(preloadLink);
 
     var script = document.createElement('script');
-    script.async = true;
+    // script.async = true;
     script.type = 'text/javascript';
     script.src = bundle;
     script.onerror = function (e) {

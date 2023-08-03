@@ -261,7 +261,7 @@ export default (new Runtime({
           referencedBundle,
           options,
         );
-        let loaderCode = `require(${JSON.stringify(
+        let loaderCode = `module.exports = require(${JSON.stringify(
           loader,
         )})( ${getAbsoluteUrlExpr(relativePathExpr, bundle)})`;
         assets.push({

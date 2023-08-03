@@ -6,7 +6,7 @@
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
 
-(function (modules, entry, mainEntry, parcelRequireName, globalName) {
+(async function (modules, entry, mainEntry, parcelRequireName, globalName) {
   /* eslint-disable no-undef */
   var globalObject =
     typeof globalThis !== 'undefined'
@@ -119,7 +119,7 @@
   globalObject[parcelRequireName] = newRequire;
 
   for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
+    await Promise.resolve(newRequire(entry[i]));
   }
 
   if (mainEntry) {
