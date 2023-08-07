@@ -53,6 +53,7 @@ export default class BundleGraph<TBundle: IBundle>
   implements IBundleGraph<TBundle>
 {
   #graph: InternalBundleGraph;
+  graph: InternalBundleGraph;
   #options: ParcelOptions;
   #createBundle: BundleFactory<TBundle>;
 
@@ -62,6 +63,7 @@ export default class BundleGraph<TBundle: IBundle>
     options: ParcelOptions,
   ) {
     this.#graph = graph;
+    this.graph = graph;
     this.#options = options;
     this.#createBundle = createBundle;
     // $FlowFixMe
