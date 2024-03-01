@@ -6,7 +6,7 @@
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
 
-(function (modules, entry, mainEntry, parcelRequireName, globalName) {
+(async function (modules, entry, mainEntry, parcelRequireName, globalName) {
   /* eslint-disable no-undef */
   var globalObject =
     typeof globalThis !== 'undefined'
@@ -118,8 +118,22 @@
 
   globalObject[parcelRequireName] = newRequire;
 
+  var currentScript = document.currentScript;
+
   for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
+    // PARCEL_HACK: Wait for all dependency bundles to load -
+    // loaderCode in runtime-js/lib/JSRuntime.js was modified to export
+    // a promise that resolves when a bundle has loaded.
+    // https://github.com/parcel-bundler/parcel/compare/v2...jondlm:parcel:jdlm-asyncify-loaded-js
+    await newRequire(entry[i]);
+  }
+
+  // PARCEL_HACK: Call the resolve function that was saved by
+  // runtime-js/lib/helpers/browser/js-loader.js only when all dependency
+  // bundles have loaded.
+  if (currentScript.__parcel_resolve_when_dependencies_loaded__) {
+    currentScript.__parcel_resolve_when_dependencies_loaded__();
+    delete currentScript.__parcel_resolve_when_dependencies_loaded__;
   }
 
   if (mainEntry) {

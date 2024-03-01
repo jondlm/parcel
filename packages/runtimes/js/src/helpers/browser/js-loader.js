@@ -34,8 +34,14 @@ module.exports = cacheLoader(function loadJSBundle(bundle) {
 
     script.onload = function () {
       script.onerror = script.onload = null;
-      resolve();
+      // ADMIN_PARCEL_HACK: Save the resolve function to
+      // script.__parcel_resolve_when_dependencies_loaded__ and only call it
+      // from packager-js/lib/dev-prelude.js when all of this bundle's
+      // dependencies have loaded.
+      // resolve();
     };
+
+    script.__parcel_resolve_when_dependencies_loaded__ = resolve;
 
     document.getElementsByTagName('head')[0].appendChild(script);
   });

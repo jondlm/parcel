@@ -261,7 +261,9 @@ export default (new Runtime({
           referencedBundle,
           options,
         );
-        let loaderCode = `require(${JSON.stringify(
+        // ADMIN_PARCEL_HACK: Export a promise that only resolves when a bundle has loaded.
+        // This promise is await'ed on by packager-js/lib/dev-prelude.js
+        let loaderCode = `module.exports = require(${JSON.stringify(
           loader,
         )})( ${getAbsoluteUrlExpr(relativePathExpr, bundle)})`;
         assets.push({

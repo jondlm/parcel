@@ -174,6 +174,12 @@ export default class NodeResolver {
     switch (res.resolution?.type) {
       case 'Path':
         return {
+          // PARCEL_HACK: If we encounter a path import (e.g. `export {thing} from './file.js';`),
+          // do not tree shake it because those icons may eventually be used by
+          // bundles loaded later.
+          canDefer: process.env.PARCEL_INCLUDE_UNUSED_EXPORTS
+            ? false
+            : undefined,
           filePath: res.resolution.value,
           invalidateOnFileCreate: res.invalidateOnFileCreate,
           invalidateOnFileChange: res.invalidateOnFileChange,

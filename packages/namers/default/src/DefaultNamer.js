@@ -17,7 +17,7 @@ const ALLOWED_EXTENSIONS = {
 };
 
 export default (new Namer({
-  name({bundle, bundleGraph}) {
+  name({bundle, bundleGraph, options}) {
     let bundleGroup = bundleGraph.getBundleGroupsContainingBundle(bundle)[0];
     let bundleGroupBundles = bundleGraph.getBundlesInBundleGroup(bundleGroup, {
       includeInline: true,
@@ -28,11 +28,15 @@ export default (new Namer({
       let entryBundlesOfType = bundleGroupBundles.filter(
         b => b.needsStableName && b.type === bundle.type,
       );
-      assert(
-        entryBundlesOfType.length === 1,
-        // Otherwise, we'd end up naming two bundles the same thing.
-        `Bundle group cannot have more than one entry bundle of the same type. The offending bundle type is ${entryBundlesOfType[0].type}`,
-      );
+      // PARCEL_HACK: We skip this check for CSS bundles because we may have multiple CSS bundles
+      // for a single JS entry bundle (e.g. JS imports both CSS and SASS).
+      if (bundle.type !== 'css') {
+        assert(
+          entryBundlesOfType.length === 1,
+          // Otherwise, we'd end up naming two bundles the same thing.
+          `Bundle group cannot have more than one entry bundle of the same type. The offending bundle type is ${entryBundlesOfType[0].type}`,
+        );
+      }
     }
 
     let mainBundle = nullthrows(
@@ -84,6 +88,18 @@ export default (new Namer({
         throw err;
       }
 
+      // PARCEL_HACK: In production mode, we insert hashes into the names of all
+      // output bundles because we have entries with the same name.
+      if (options.mode === 'production') {
+        let name = nameFromContent(
+          bundle,
+          isEntry,
+          bundleGroup.entryAssetId,
+          bundleGraph.getEntryRoot(bundle.target),
+        );
+        return `${name}.${bundle.hashReference}.${bundle.type}`;
+      }
+
       return bundle.target.distEntry;
     }
 
@@ -96,7 +112,9 @@ export default (new Namer({
       bundleGroup.entryAssetId,
       bundleGraph.getEntryRoot(bundle.target),
     );
-    if (!bundle.needsStableName) {
+    // PARCEL_HACK: We appends hashes to CSS bundles because we may have multiple CSS bundles
+    // for a single JS entry bundle (e.g. JS imports both CSS and SASS).
+    if (!bundle.needsStableName || bundle.type === 'css') {
       name += '.' + bundle.hashReference;
     }
 

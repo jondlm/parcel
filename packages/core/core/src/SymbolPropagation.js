@@ -472,7 +472,11 @@ export function propagateSymbols({
               assetGroup.type === 'asset_group' &&
               assetGroup.value.sideEffects === false
             ) {
-              incomingDep.excluded = true;
+              // PARCEL_HACK: Do not exclude dependencies because they may eventually
+              // be used by bundles loaded later on (e.g. createTokens in /object).
+              if (!process.env.PARCEL_INCLUDE_UNUSED_EXPORTS) {
+                incomingDep.excluded = true;
+              }
             }
           } else {
             invariant(assetGroups.length === 0);
