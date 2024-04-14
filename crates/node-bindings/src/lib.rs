@@ -7,11 +7,11 @@ use std::alloc::alloc;
 #[cfg(target_arch = "wasm32")]
 use std::alloc::Layout;
 
-#[cfg(target_os = "macos")]
+#[cfg(all(target_os = "macos", not(miri)))]
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(windows)]
+#[cfg(all(windows, not(miri)))]
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
