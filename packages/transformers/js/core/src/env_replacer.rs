@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::vec;
 
 use ast::*;
+use stacker::remaining_stack;
 use swc_core::common::Mark;
 use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast;
@@ -166,6 +167,8 @@ impl<'a> Fold for EnvReplacer<'a> {
       }
     }
 
+    println!("jdlm-apparent-football {}", remaining_stack().unwrap());
+    // grow(4 * 1024 * 1024,|| node.fold_children_with(self))
     maybe_grow_default(|| node.fold_children_with(self))
   }
 
@@ -199,6 +202,8 @@ impl<'a> Fold for EnvReplacer<'a> {
 
 impl<'a> EnvReplacer<'a> {
   fn replace(&mut self, sym: &JsWord, fallback_undefined: bool) -> Option<Expr> {
+    println!("jdlm-replace");
+
     if let Some(val) = self.env.get(sym) {
       self.used_env.insert(sym.clone());
       return Some(Expr::Lit(Lit::Str(Str {
@@ -226,6 +231,7 @@ impl<'a> EnvReplacer<'a> {
   }
 
   fn collect_pat_bindings(&mut self, pat: &Pat, decls: &mut Vec<VarDeclarator>) {
+    println!("jdlm-collect_pat_bindings");
     match pat {
       Pat::Object(object) => {
         for prop in &object.props {
@@ -293,6 +299,8 @@ impl<'a> EnvReplacer<'a> {
   }
 
   fn emit_mutating_error(&mut self, span: swc_core::common::Span) {
+    println!("jdlm-emit_mutating_error");
+
     self.diagnostics.push(Diagnostic {
       message: "Mutating process.env is not supported".into(),
       code_highlights: Some(vec![CodeHighlight {

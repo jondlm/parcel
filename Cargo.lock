@@ -1626,6 +1626,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "sha-1",
+ "stacker",
  "swc_core",
 ]
 

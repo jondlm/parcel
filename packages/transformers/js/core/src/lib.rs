@@ -10,8 +10,10 @@ mod node_replacer;
 mod typeof_replacer;
 mod utils;
 
+use stacker::remaining_stack;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::panic;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -172,6 +174,7 @@ pub fn transform(
   config: Config,
   call_macro: Option<MacroCallback>,
 ) -> Result<TransformResult, std::io::Error> {
+  println!("jdlm-transform");
   let mut result = TransformResult::default();
   let mut map_buf = vec![];
 
@@ -185,6 +188,8 @@ pub fn transform(
     &config,
   );
 
+  println!("jdlm-stinky-football");
+
   match module {
     Err(errs) => {
       let error_buffer = ErrorBuffer::default();
@@ -197,6 +202,7 @@ pub fn transform(
       Ok(result)
     }
     Ok((module, comments)) => {
+      println!("jdlm-flagrant-pork");
       let mut module = module;
       result.shebang = match &mut module {
         Program::Module(module) => module.shebang.take().map(|s| s.to_string()),
@@ -213,6 +219,7 @@ pub fn transform(
         SourceType::Script => false,
       };
 
+      println!("jdlm-purple-car");
       swc_core::common::GLOBALS.set(&Globals::new(), || {
         let error_buffer = ErrorBuffer::default();
         let handler = Handler::with_emitter(true, false, Box::new(error_buffer.clone()));
@@ -247,6 +254,7 @@ pub fn transform(
                 };
               }
 
+              println!("jdlm-fix-it");
               let global_mark = Mark::fresh(Mark::root());
               let unresolved_mark = Mark::fresh(Mark::root());
               let module = module.fold_with(&mut chain!(
@@ -280,6 +288,7 @@ pub fn transform(
                   config.is_type_script && !config.is_jsx
                 ),
               ));
+              println!("jdlm-hi-there");
 
               let is_module = module.is_module();
               // If it's a script, convert into module. This needs to happen after
@@ -303,6 +312,7 @@ pub fn transform(
                 ),
                 config.is_jsx,
               ));
+              println!("jdlm-nasty-finch");
 
               let mut preset_env_config = swc_core::ecma::preset_env::Config {
                 dynamic_import: true,
@@ -343,26 +353,28 @@ pub fn transform(
                 result.is_constant_module = constant_module.is_constant_module;
               }
 
+              println!("jdlm-pink-bomb {}", remaining_stack().unwrap());
+
               let module = {
                 let mut passes = chain!(
-                  Optional::new(
-                    TypeofReplacer { unresolved_mark },
-                    config.source_type != SourceType::Script
-                  ),
+                  // Optional::new(
+                  //   TypeofReplacer { unresolved_mark },
+                  //   config.source_type != SourceType::Script
+                  // ),
                   // Inline process.env and process.browser
-                  Optional::new(
-                    EnvReplacer {
-                      replace_env: config.replace_env,
-                      env: &config.env,
-                      is_browser: config.is_browser,
-                      used_env: &mut result.used_env,
-                      source_map: &source_map,
-                      diagnostics: &mut diagnostics,
-                      unresolved_mark
-                    },
-                    config.source_type != SourceType::Script
-                  ),
-                  paren_remover(Some(&comments)),
+                  // Optional::new(
+                  //   EnvReplacer {
+                  //     replace_env: config.replace_env,
+                  //     env: &config.env,
+                  //     is_browser: config.is_browser,
+                  //     used_env: &mut result.used_env,
+                  //     source_map: &source_map,
+                  //     diagnostics: &mut diagnostics,
+                  //     unresolved_mark
+                  //   },
+                  //   config.source_type != SourceType::Script
+                  // ),
+                  // paren_remover(Some(&comments)),
                   // Simplify expressions and remove dead branches so that we
                   // don't include dependencies inside conditionals that are always false.
                   expr_simplifier(unresolved_mark, Default::default()),
@@ -382,8 +394,12 @@ pub fn transform(
                   ),
                 );
 
-                module.fold_with(&mut passes)
+                let mut foo = expr_simplifier(unresolved_mark, Default::default());
+
+                module.fold_with(&mut foo)
               };
+
+              println!("jdlm-wat-weird {}", remaining_stack().unwrap());
 
               let module = module.fold_with(
                 // Replace __dirname and __filename with placeholders in Node env
@@ -450,6 +466,7 @@ pub fn transform(
               } else {
                 module
               };
+              println!("jdlm-skinny-finger");
 
               let ignore_mark = Mark::fresh(Mark::root());
               let module = module.fold_with(
@@ -553,6 +570,11 @@ fn parse(
   source_map: &Lrc<SourceMap>,
   config: &Config,
 ) -> ParseResult<(Program, SingleThreadedComments)> {
+  println!("jdlm-parse");
+  panic::set_hook(Box::new(|panic_info| {
+    // Log or report panic_info
+    println!("Panic occurred: {:?}", panic_info);
+  }));
   // Attempt to convert the path to be relative to the project root.
   // If outside the project root, use an absolute path so that if the project root moves the path still works.
   let filename: PathBuf = if let Ok(relative) = Path::new(filename).strip_prefix(project_root) {
@@ -580,6 +602,7 @@ fn parse(
     })
   };
 
+  println!("jdlm-about-to-lex");
   let lexer = Lexer::new(
     syntax,
     Default::default(),
@@ -588,7 +611,9 @@ fn parse(
   );
 
   let mut parser = Parser::new_from(lexer);
+  println!("jdlm-about-to-parse_program");
   let result = parser.parse_program();
+  println!("jdlm-done-with-parse");
 
   let module = match result {
     Err(err) => {
@@ -603,6 +628,7 @@ fn parse(
     return Err(errors);
   }
 
+  println!("jdlm-about-to-okay");
   Ok((module, comments))
 }
 
@@ -612,6 +638,7 @@ fn emit(
   module: &Module,
   source_maps: bool,
 ) -> Result<(Vec<u8>, SourceMapBuffer), std::io::Error> {
+  println!("jdlm-emit");
   let mut src_map_buf = vec![];
   let mut buf = vec![];
   {
